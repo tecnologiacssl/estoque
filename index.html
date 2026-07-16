@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planilha de Estoque - Casa de Saúde Santa Lúcia</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- QRCode.js for generating QR codes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Html5Qrcode for scanning QR codes via camera -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom print styling for QR Codes */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-section, #print-section * {
+                visibility: visible;
+            }
+            #print-section {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="flex min-h-screen text-slate-800">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-100 flex flex-col justify-between p-6 shrink-0 hidden md:flex">
+        <div>
+            <!-- Logo / Brand -->
+            <div class="flex items-center gap-3 mb-8">
+                <div class="bg-[#00b493]/10 text-[#00b493] p-2 rounded-xl">
+                    <i data-lucide="activity" class="w-7 h-7"></i>
+                </div>
+                <div>
+                    <h2 class="text-xs font-bold text-slate-400 tracking-wider uppercase">Casa de Saúde</h2>
+                    <h1 class="text-md font-extrabold text-[#023246] -mt-1">Santa Lúcia</h1>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="space-y-1">
+                <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-blue-50 text-blue-600 font-semibold text-sm">
+                    <i data-lucide="layout-grid" class="w-5 h-5"></i>
+                    <span>Estoque</span>
+                </a>
+                <a href="#" onclick="alert('Funcionalidade simulada na versão HTML de demonstração')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition text-sm">
+                    <i data-lucide="history" class="w-5 h-5"></i>
+                    <span>Histórico</span>
+                </a>
+                <a href="#" onclick="alert('Funcionalidade simulada na versão HTML de demonstração')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition text-sm">
+                    <i data-lucide="file-bar-chart" class="w-5 h-5"></i>
+                    <span>Relatórios</span>
+                </a>
+                <a href="#" onclick="alert('Funcionalidade simulada na versão HTML de demonstração')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition text-sm">
+                    <i data-lucide="tags" class="w-5 h-5"></i>
+                    <span>Categorias</span>
+                </a>
+                <a href="#" onclick="alert('Funcionalidade simulada na versão HTML de demonstração')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition text-sm">
+                    <i data-lucide="truck" class="w-5 h-5"></i>
+                    <span>Fornecedores</span>
+                </a>
+                <a href="#" onclick="alert('Funcionalidade simulada na versão HTML de demonstração')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:bg-slate-50 hover:text-slate-800 transition text-sm">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <span>Configurações</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Sidebar Footer Status Card -->
+        <div class="space-y-4">
+            <div class="bg-blue-50/50 rounded-2xl p-4 border border-blue-100">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs text-slate-500">Saldo Geral</span>
+                    <span class="bg-blue-100 text-blue-700 p-1.5 rounded-lg"><i data-lucide="package" class="w-4 h-4"></i></span>
+                </div>
+                <div class="text-2xl font-bold text-slate-800" id="sidebar-total-items">0</div>
+                <span class="text-xs text-slate-500">itens em estoque</span>
+            </div>
+
+            <!-- Profile Info -->
+            <div class="flex items-center justify-between border-t border-slate-100 pt-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center text-sm">TI</div>
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-700">TI - CSSL</h4>
+                        <p class="text-[10px] text-slate-400 font-medium">Administrador</p>
+                    </div>
+                </div>
+                <button class="text-slate-400 hover:text-slate-600"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Panel -->
+    <main class="flex-1 p-6 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
+        <!-- Header -->
+        <div class="flex justify-between items-start mb-8 gap-4 flex-wrap">
+            <div>
+                <h1 class="text-3xl font-bold text-[#023246] tracking-tight">Planilha de Estoque</h1>
+                <p class="text-slate-500 mt-1">Registre entradas e saídas de materiais e acompanhe o saldo atual.</p>
+            </div>
+            <div class="flex gap-3 items-center">
+                <!-- Scanner Quick Activation Toggle -->
+                <button id="btn-toggle-scanner" onclick="openScannerModal()" class="flex items-center gap-2 bg-[#00b493] text-white px-4 py-2.5 rounded-xl font-medium text-sm hover:bg-[#00a384] transition shadow-sm">
+                    <i data-lucide="scan-line" class="w-4 h-4"></i>
+                    <span>Bipar QR Code (Entrada/Saída)</span>
+                </button>
+                <button onclick="alert('Histórico de Movimentações exportado/salvo')" class="flex items-center gap-2 border border-slate-200 bg-white text-slate-600 px-4 py-2.5 rounded-xl text-sm font-medium hover:bg-slate-50 transition">
+                    <i data-lucide="history" class="w-4 h-4"></i>
+                    <span>Histórico de Movimentações</span>
+                </button>
+                <div class="relative">
+                    <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                    <button class="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-50 transition"><i data-lucide="bell" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick actions & Scanner Status indicator if active -->
+        <div id="scanner-inline-container" class="hidden bg-emerald-50 border border-emerald-200 p-4 rounded-2xl mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <span class="animate-pulse flex h-3 w-3 relative">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                </span>
+                <div>
+                    <h4 class="font-bold text-emerald-800 text-sm">Leitor de QR Code Ativo</h4>
+                    <p class="text-xs text-emerald-600">Aponte a etiqueta do produto para a câmera para registrar movimentação automática.</p>
+                </div>
+            </div>
+            <button onclick="closeScannerModal()" class="text-xs font-semibold bg-white text-emerald-800 px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-100 transition">Desativar Leitor</button>
+        </div>
+
+        <!-- Registrar Movimentação Card -->
+        <section class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm mb-6">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="bg-blue-50 text-blue-600 p-2.5 rounded-xl">
+                    <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                </div>
+                <h3 class="font-bold text-slate-800 text-lg">Registrar movimentação</h3>
+            </div>
+
+            <form id="movimentacao-form" onsubmit="registrarMovimentacaoManual(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Material / Produto</label>
+                    <div class="relative">
+                        <select id="mov-material" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none">
+                            <option value="">Selecione um material...</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Quantidade</label>
+                    <input type="number" id="mov-quantidade" min="1" value="1" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Tipo de Operação</label>
+                    <div class="relative">
+                        <select id="mov-tipo" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none">
+                            <option value="entrada" class="text-emerald-600 font-medium">📥 Entrada</option>
+                            <option value="saida" class="text-rose-600 font-medium">📤 Saída</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-4 h-4 text-slate-400 pointer-events-none"></i>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Data</label>
+                    <input type="date" id="mov-data" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="md:col-span-3">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Observação (opcional)</label>
+                    <input type="text" id="mov-observacao" placeholder="Ex: Compra do mês, ajuste de estoque..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-3 rounded-xl transition flex items-center justify-center gap-2 text-sm shadow-sm">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        Registrar movimentação
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Dynamic Action Tiles -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <button onclick="exportarCSV()" class="bg-white border border-slate-100 p-4 rounded-2xl flex items-center gap-4 hover:shadow-md transition text-left">
+                <div class="bg-emerald-50 text-emerald-600 p-3 rounded-xl">
+                    <i data-lucide="file-spreadsheet" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm">Exportar CSV</h4>
+                    <p class="text-xs text-slate-400">Baixar planilha de estoque</p>
+                </div>
+            </button>
+            <button onclick="limparDados()" class="bg-white border border-slate-100 p-4 rounded-2xl flex items-center gap-4 hover:shadow-md transition text-left">
+                <div class="bg-rose-50 text-rose-600 p-3 rounded-xl">
+                    <i data-lucide="trash-2" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm">Limpar dados</h4>
+                    <p class="text-xs text-slate-400">Remover registros ativos</p>
+                </div>
+            </button>
+            <button onclick="mostrarSaldoAtual()" class="bg-white border border-slate-100 p-4 rounded-2xl flex items-center gap-4 hover:shadow-md transition text-left">
+                <div class="bg-sky-50 text-sky-600 p-3 rounded-xl">
+                    <i data-lucide="pie-chart" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm">Ver Saldo Atual</h4>
+                    <p class="text-xs text-slate-400">Resumo completo do estoque</p>
+                </div>
+            </button>
+            <button onclick="alert('Histórico de Movimentações listado!')" class="bg-white border border-slate-100 p-4 rounded-2xl flex items-center gap-4 hover:shadow-md transition text-left">
+                <div class="bg-violet-50 text-violet-600 p-3 rounded-xl">
+                    <i data-lucide="trending-up" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm">Mostrar Histórico</h4>
+                    <p class="text-xs text-slate-400">Ver todas movimentações</p>
+                </div>
+            </button>
+        </section>
+
+        <!-- Novo Produto Form / Adicionar Item -->
+        <section class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-sky-50 text-sky-600 p-2.5 rounded-xl">
+                        <i data-lucide="plus" class="w-5 h-5"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-800 text-md">Cadastrar Novo Produto</h3>
+                </div>
+            </div>
+            <form id="cadastro-form" onsubmit="cadastrarProduto(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nome do Material / Produto</label>
+                    <input type="text" id="cad-nome" required placeholder="Ex: Seringa Descartável 10ml, Luva de Procedimento" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Estoque Inicial</label>
+                    <input type="number" id="cad-quantidade" min="0" value="0" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div class="flex items-end">
+                    <button type="submit" class="w-full bg-[#023246] hover:bg-[#034059] text-white font-medium px-6 py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
+                        <i data-lucide="package-plus" class="w-4 h-4"></i>
+                        Cadastrar Produto
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Produtos em estoque Table / List -->
+        <section class="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+            <!-- Table Header Section -->
+            <div class="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl">
+                        <i data-lucide="package" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg">Produtos em estoque</h3>
+                        <p class="text-xs text-slate-400">Gerencie códigos, imprima etiquetas QR, remova e controle níveis</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="relative flex-1 md:w-72">
+                        <i data-lucide="search" class="absolute left-3.5 top-3.5 text-slate-400 w-4 h-4"></i>
+                        <input type="text" id="search-input" oninput="filtrarProdutos()" placeholder="Buscar material..." class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <button class="flex items-center gap-2 border border-slate-200 px-4 py-2.5 rounded-xl text-sm text-slate-600 hover:bg-slate-50 transition">
+                        <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+                        <span>Filtros</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table content -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-slate-100 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50">
+                            <th class="px-6 py-4">ID / QR</th>
+                            <th class="px-6 py-4">Material / Produto</th>
+                            <th class="px-6 py-4">Quantidade Atual</th>
+                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4 text-right">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="estoque-tbody">
+                        <!-- Filled by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Table Footer / Pagination -->
+            <div class="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span id="showing-results-text">Exibindo 0 de 0 itens</span>
+                <div class="flex gap-1.5">
+                    <button class="p-2 border border-slate-100 rounded-lg hover:bg-slate-50"><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
+                    <span class="px-3.5 py-2 bg-blue-50 text-blue-600 font-bold rounded-lg">1</span>
+                    <button class="p-2 border border-slate-100 rounded-lg hover:bg-slate-50"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal: QR Code Scanner -->
+    <div id="scanner-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl relative overflow-hidden">
+            <button onclick="closeScannerModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-6 h-6"></i></button>
+            
+            <div class="text-center mb-4">
+                <h3 class="text-xl font-bold text-slate-800">Bipar Código de Barra / QR Code</h3>
+                <p class="text-xs text-slate-500">Simule ou leia diretamente da câmera para dar entrada ou saída instantânea.</p>
+            </div>
+
+            <!-- Scanner Camera Viewport -->
+            <div class="relative bg-slate-900 rounded-2xl overflow-hidden aspect-square flex items-center justify-center mb-4 border border-slate-100">
+                <div id="qr-reader" class="w-full h-full"></div>
+                <div id="scanner-laser" class="absolute left-0 right-0 h-0.5 bg-rose-500 shadow-md animate-bounce"></div>
+            </div>
+
+            <!-- Operation toggle in modal -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <button id="modal-op-entrada" onclick="setModalOp('entrada')" class="py-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 font-bold text-sm text-center">
+                    📥 Modo Entrada (+1)
+                </button>
+                <button id="modal-op-saida" onclick="setModalOp('saida')" class="py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm text-center">
+                    📤 Modo Saída (-1)
+                </button>
+            </div>
+
+            <!-- Manual Simulation Input (For Testing without camera) -->
+            <div class="border-t border-slate-100 pt-4">
+                <label class="block text-xs font-bold text-slate-500 mb-2">Simular bip com ID ou código do produto</label>
+                <div class="flex gap-2">
+                    <input type="text" id="simulated-qr-input" placeholder="Insira o ID do produto ou bip manual..." class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <button onclick="simularBip()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm px-4 rounded-xl">Bipar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: QR Code Details / Print Preview -->
+    <div id="qr-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl relative text-center">
+            <button onclick="closeQrModal()" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-6 h-6"></i></button>
+            
+            <h3 class="text-xl font-bold text-slate-800 mb-2" id="qr-modal-title">Etiqueta de Estoque</h3>
+            <p class="text-xs text-slate-500 mb-6" id="qr-modal-subtitle">Use a etiqueta impressa para bipar rapidamente as movimentações no estoque físico.</p>
+            
+            <!-- Area targeted for Print -->
+            <div id="print-section" class="bg-white p-6 rounded-2xl border-2 border-dashed border-slate-200 inline-block mx-auto mb-6">
+                <div class="text-center font-bold text-slate-800 mb-3 tracking-wide text-sm" id="qr-print-title">C.S. SANTA LÚCIA</div>
+                <div id="qrcode-container" class="flex justify-center p-2 bg-white rounded-xl"></div>
+                <div class="text-xs font-semibold text-slate-500 mt-3" id="qr-print-id">ID: product-id</div>
+                <div class="text-[10px] text-slate-400 tracking-widest uppercase mt-1">Bipar p/ Entrada/Saída</div>
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="imprimirEtiqueta()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition text-sm flex items-center justify-center gap-2 shadow-sm">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                    Imprimir Etiqueta
+                </button>
+                <button onclick="closeQrModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium py-3 rounded-xl transition text-sm">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Javascript Logical Engine -->
+    <script>
+        // Initial Database Mock Data (Stored in LocalStorage to persist changes)
+        const DEFAULT_STOCK = [
+            { id: "1001", material: "Mouse Óptico USB", quantidade: 15, ultimaAtualizacao: "15/07/2026 10:30", tipoUltima: "Entrada" },
+            { id: "1002", material: "Seringa Descartável 10ml", quantidade: 320, ultimaAtualizacao: "16/07/2026 09:15", tipoUltima: "Entrada" },
+            { id: "1003", material: "Luva Látex de Procedimento (M)", quantidade: 48, ultimaAtualizacao: "16/07/2026 11:20", tipoUltima: "Saída" },
+            { id: "1004", material: "Máscara Descartável Cirúrgica", quantidade: 125, ultimaAtualizacao: "14/07/2026 14:00", tipoUltima: "Entrada" }
+        ];
+
+        let estoque = JSON.parse(localStorage.getItem('CSSL_ESTOQUE')) || DEFAULT_STOCK;
+        let html5QrScanner = null;
+        let selectedModalOp = "entrada"; // Default scan action inside modal
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            inicializarDataInput();
+            atualizarUI();
+            lucide.createIcons();
+        });
+
+        // Set default date input as today
+        function inicializarDataInput() {
+            const dateInput = document.getElementById('mov-data');
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.value = today;
+        }
+
+        // Save data to localStorage
+        function salvarEstoque() {
+            localStorage.setItem('CSSL_ESTOQUE', JSON.stringify(estoque));
+            atualizarUI();
+        }
+
+        // Main UI updates renderer
+        function atualizarUI() {
+            const tableBody = document.getElementById('estoque-tbody');
+            const selectMaterial = document.getElementById('mov-material');
+            const sidebarTotal = document.getElementById('sidebar-total-items');
+            const showingText = document.getElementById('showing-results-text');
+
+            tableBody.innerHTML = '';
+            selectMaterial.innerHTML = '<option value="">Selecione um material...</option>';
+
+            let totalItensUnicos = estoque.length;
+            sidebarTotal.innerText = totalItensUnicos;
+            showingText.innerText = `Exibindo ${totalItensUnicos} de ${totalItensUnicos} itens`;
+
+            estoque.forEach(item => {
+                // Populate Select Option
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.innerText = `${item.material} (ID: ${item.id} - Saldo: ${item.quantidade})`;
+                selectMaterial.appendChild(option);
+
+                // Determine stock badge colors
+                let badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-100";
+                let badgeText = "Em estoque";
+                if (item.quantidade <= 0) {
+                    badgeClass = "bg-rose-50 text-rose-700 border-rose-100";
+                    badgeText = "Esgotado";
+                } else if (item.quantidade <= 10) {
+                    badgeClass = "bg-amber-50 text-amber-700 border-amber-100";
+                    badgeText = "Estoque Baixo";
+                }
+
+                // Append Table Row
+                const row = document.createElement('tr');
+                row.className = "border-b border-slate-100 text-sm hover:bg-slate-50/50 transition";
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-mono font-bold text-xs text-slate-500">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-slate-100 px-2 py-1 rounded-md">#${item.id}</span>
+                            <button onclick="gerarEtiquetaQR('${item.id}')" class="text-blue-600 hover:text-blue-800 p-1 rounded-md hover:bg-blue-50 transition" title="Exibir / Imprimir QR Code">
+                                <i data-lucide="qr-code" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-[#023246]">${item.material}</td>
+                    <td class="px-6 py-4">
+                        <span class="font-bold text-slate-700">${item.quantidade}</span>
+                        <span class="text-xs text-slate-400 block">unidades</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeClass}">${badgeText}</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="gerarEtiquetaQR('${item.id}')" class="flex items-center gap-1.5 border border-blue-200 text-blue-600 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-blue-50 transition">
+                                <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
+                                Gerar QR
+                            </button>
+                            <button onclick="removerProduto('${item.id}')" class="p-1.5 rounded-xl border border-rose-100 hover:bg-rose-50 text-rose-600 transition" title="Excluir Produto">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            lucide.createIcons();
+        }
+
+        // Register action manual
+        function registrarMovimentacaoManual(event) {
+            event.preventDefault();
+            const id = document.getElementById('mov-material').value;
+            const quantidade = parseInt(document.getElementById('mov-quantidade').value);
+            const tipo = document.getElementById('mov-tipo').value;
+            const data = document.getElementById('mov-data').value;
+            const obs = document.getElementById('mov-observacao').value;
+
+            if (!id) {
+                alert('Por favor, selecione um produto do estoque.');
+                return;
+            }
+
+            const formatData = data.split('-').reverse().join('/') + ' ' + new Date().toTimeString().split(' ')[0].substring(0, 5);
+
+            aplicarMovimentacao(id, quantidade, tipo, formatData);
+            document.getElementById('movimentacao-form').reset();
+            inicializarDataInput();
+        }
+
+        // Apply movement engine
+        function aplicarMovimentacao(id, quantidade, tipo, dataHora) {
+            const item = estoque.find(x => x.id === id);
+            if (!item) {
+                alert('Produto não localizado.');
+                return;
+            }
+
+            if (tipo === 'saida') {
+                if (item.quantidade < quantidade) {
+                    alert(`Estoque insuficiente! O item ${item.material} tem apenas ${item.quantidade} unidades disponíveis.`);
+                    return;
+                }
+                item.quantidade -= quantidade;
+                item.tipoUltima = "Saída";
+            } else {
+                item.quantidade += quantidade;
+                item.tipoUltima = "Entrada";
+            }
+
+            item.ultimaAtualizacao = dataHora;
+            salvarEstoque();
+            alert(`Movimentação de ${tipo.toUpperCase()} registrada com sucesso!\n${item.material}: Novo Saldo = ${item.quantidade}`);
+        }
+
+        // Register Product
+        function cadastrarProduto(event) {
+            event.preventDefault();
+            const nome = document.getElementById('cad-nome').value.trim();
+            const qtdInicial = parseInt(document.getElementById('cad-quantidade').value);
+            const idUnico = Math.floor(1000 + Math.random() * 9000).toString(); // Generate unique 4-digit ID
+
+            if (!nome) return;
+
+            const novo = {
+                id: idUnico,
+                material: nome,
+                quantidade: qtdInicial,
+                ultimaAtualizacao: new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toTimeString().split(' ')[0].substring(0, 5),
+                tipoUltima: "Entrada"
+            };
+
+            estoque.push(novo);
+            salvarEstoque();
+            document.getElementById('cadastro-form').reset();
+            alert(`Produto registrado!\nNome: ${nome}\nID Gerado: #${idUnico}`);
+        }
+
+        // Remove Product from Database
+        function removerProduto(id) {
+            if (confirm("Deseja realmente remover este item do estoque definitivamente?")) {
+                estoque = estoque.filter(x => x.id !== id);
+                salvarEstoque();
+            }
+        }
+
+        // Filter / Search
+        function filtrarProdutos() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = estoque.filter(item => 
+                item.material.toLowerCase().includes(query) || 
+                item.id.includes(query)
+            );
+
+            // Temporarily update table render with filters
+            const tableBody = document.getElementById('estoque-tbody');
+            tableBody.innerHTML = '';
+
+            filtered.forEach(item => {
+                let badgeClass = "bg-emerald-50 text-emerald-700 border-emerald-100";
+                let badgeText = "Em estoque";
+                if (item.quantidade <= 0) {
+                    badgeClass = "bg-rose-50 text-rose-700 border-rose-100";
+                    badgeText = "Esgotado";
+                } else if (item.quantidade <= 10) {
+                    badgeClass = "bg-amber-50 text-amber-700 border-amber-100";
+                    badgeText = "Estoque Baixo";
+                }
+
+                const row = document.createElement('tr');
+                row.className = "border-b border-slate-100 text-sm hover:bg-slate-50/50 transition";
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-mono font-bold text-xs text-slate-500">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-slate-100 px-2 py-1 rounded-md">#${item.id}</span>
+                            <button onclick="gerarEtiquetaQR('${item.id}')" class="text-blue-600 hover:text-blue-800 p-1 rounded-md hover:bg-blue-50 transition">
+                                <i data-lucide="qr-code" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 font-semibold text-[#023246]">${item.material}</td>
+                    <td class="px-6 py-4">
+                        <span class="font-bold text-slate-700">${item.quantidade}</span>
+                        <span class="text-xs text-slate-400 block">unidades</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${badgeClass}">${badgeText}</span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="gerarEtiquetaQR('${item.id}')" class="flex items-center gap-1.5 border border-blue-200 text-blue-600 px-3 py-1.5 rounded-xl text-xs font-semibold hover:bg-blue-50 transition">
+                                <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
+                                Gerar QR
+                            </button>
+                            <button onclick="removerProduto('${item.id}')" class="p-1.5 rounded-xl border border-rose-100 hover:bg-rose-50 text-rose-600 transition" title="Excluir Produto">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        // Export data to CSV
+        function exportarCSV() {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "ID,Material,Quantidade,Ultima Atualizacao,Ultima Operacao\n";
+            
+            estoque.forEach(item => {
+                csvContent += `"${item.id}","${item.material}",${item.quantidade},"${item.ultimaAtualizacao}","${item.tipoUltima}"\n`;
+            });
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "estoque_santa_lucia.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Clear Storage
+        function limparDados() {
+            if (confirm("Atenção! Isso removerá todos os registros de estoque personalizados e restaurará os de demonstração. Continuar?")) {
+                localStorage.removeItem('CSSL_ESTOQUE');
+                estoque = DEFAULT_STOCK;
+                atualizarUI();
+            }
+        }
+
+        // Show Current Total Balance
+        function mostrarSaldoAtual() {
+            let total = estoque.reduce((acc, curr) => acc + curr.quantidade, 0);
+            alert(`Saldo Geral do Estoque: ${total} unidades no total dos produtos.`);
+        }
+
+        // QR Code Generation for Modal/Etiqueta
+        function gerarEtiquetaQR(id) {
+            const item = estoque.find(x => x.id === id);
+            if (!item) return;
+
+            document.getElementById('qr-modal-title').innerText = item.material;
+            document.getElementById('qr-print-title').innerText = item.material.toUpperCase().substring(0, 22);
+            document.getElementById('qr-print-id').innerText = `ID: ${item.id}`;
+            
+            const qrContainer = document.getElementById('qrcode-container');
+            qrContainer.innerHTML = ''; // Clear previous QR
+
+            // Create new QR Code using qrcodejs
+            new QRCode(qrContainer, {
+                text: item.id,
+                width: 160,
+                height: 160,
+                colorDark: "#023246",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+
+            document.getElementById('qr-modal').classList.remove('hidden');
+        }
+
+        function closeQrModal() {
+            document.getElementById('qr-modal').classList.add('hidden');
+        }
+
+        function imprimirEtiqueta() {
+            window.print();
+        }
+
+        // --- SCANNER SYSTEM (CAMERA & SIMULATED) ---
+        function openScannerModal() {
+            document.getElementById('scanner-modal').classList.remove('hidden');
+            document.getElementById('scanner-inline-container').classList.remove('hidden');
+            
+            // Start Camera QR Code Scanner using Html5Qrcode
+            try {
+                html5QrScanner = new Html5Qrcode("qr-reader");
+                const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+                
+                html5QrScanner.start(
+                    { facingMode: "environment" }, // prefer rear camera
+                    config,
+                    onScanSuccess,
+                    onScanFailure
+                ).catch(err => {
+                    console.log("Câmera não autorizada ou indisponível, simulando modo de digitação bip.", err);
+                });
+            } catch (e) {
+                console.log("Erro ao iniciar câmera.", e);
+            }
+        }
+
+        function closeScannerModal() {
+            document.getElementById('scanner-modal').classList.add('hidden');
+            document.getElementById('scanner-inline-container').classList.add('hidden');
+            
+            if (html5QrScanner) {
+                html5QrScanner.stop().then(() => {
+                    console.log("Leitor de câmera desativado.");
+                }).catch(err => {
+                    console.error("Falha ao parar scanner de câmera: ", err);
+                });
+            }
+        }
+
+        // Change scanning operation mode
+        function setModalOp(op) {
+            selectedModalOp = op;
+            const btnEntrada = document.getElementById('modal-op-entrada');
+            const btnSaida = document.getElementById('modal-op-saida');
+
+            if (op === "entrada") {
+                btnEntrada.className = "py-2.5 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-700 font-bold text-sm text-center";
+                btnSaida.className = "py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm text-center";
+            } else {
+                btnSaida.className = "py-2.5 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-700 font-bold text-sm text-center";
+                btnEntrada.className = "py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm text-center";
+            }
+        }
+
+        // Camera QR Code Scan Handler
+        function onScanSuccess(decodedText, decodedResult) {
+            // Beep simulation
+            playBeepSound();
+            processarCodigoBipado(decodedText);
+        }
+
+        function onScanFailure(error) {
+            // Fail silently as camera scans rapidly
+        }
+
+        // Simulate scanning with text field
+        function simularBip() {
+            const input = document.getElementById('simulated-qr-input');
+            const codigo = input.value.trim();
+            if (!codigo) {
+                alert("Por favor digite ou bibe um código.");
+                return;
+            }
+            playBeepSound();
+            processarCodigoBipado(codigo);
+            input.value = "";
+        }
+
+        // Common processing function
+        function processarCodigoBipado(codigo) {
+            const item = estoque.find(x => x.id === codigo || x.material.toLowerCase() === codigo.toLowerCase());
+            if (!item) {
+                alert(`Código ou Produto "${codigo}" não encontrado no cadastro do estoque!`);
+                return;
+            }
+
+            const dataHora = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toTimeString().split(' ')[0].substring(0, 5);
+            
+            if (selectedModalOp === "entrada") {
+                item.quantidade += 1;
+                item.tipoUltima = "Entrada";
+            } else {
+                if (item.quantidade <= 0) {
+                    alert(`Não é possível dar saída no item ${item.material}! O estoque já está zerado.`);
+                    return;
+                }
+                item.quantidade -= 1;
+                item.tipoUltima = "Saída";
+            }
+
+            item.ultimaAtualizacao = dataHora;
+            salvarEstoque();
+            
+            // Audio visual indicator feedback inside modal
+            const flashColor = selectedModalOp === "entrada" ? "bg-emerald-500/20" : "bg-rose-500/20";
+            const readerElement = document.getElementById("qr-reader");
+            readerElement.classList.add(flashColor);
+            setTimeout(() => { readerElement.classList.remove(flashColor); }, 400);
+
+            alert(`BIP SUCESSO!\nMaterial: ${item.material}\nOperação: ${selectedModalOp.toUpperCase()} (+1)\nNovo Estoque: ${item.quantidade}`);
+        }
+
+        // Simple Synthetic Web Audio API Beep (Sounds like a real super-market cash register bip)
+        function playBeepSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(1200, audioCtx.currentTime); // High pitch supermarket beep
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.1); // Short beep
+            } catch (e) {
+                console.log("Áudio não suportado antes da primeira interação.");
+            }
+        }
+    </script>
+</body>
+</html>
