@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estoque Santa Lúcia - Nuvem</title>
+    <!-- Importa a biblioteca do Supabase para conectar ao banco de dados -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Mantenha todo o visual e CSS que você já possui aqui para não perder seu design */
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="number"] { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #218838; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Controle de Estoque (Nuvem)</h1>
+    
+    <!-- Formulário para Adicionar/Editar itens -->
+    <div class="form-group">
+        <label for="codigo">Código de Barras:</label>
+        <input type="text" id="codigo" placeholder="Bipe ou digite o código">
+    </div>
+    <div class="form-group">
+        <label for="nome">Nome do Produto:</label>
+        <input type="text" id="nome" placeholder="Nome do produto">
+    </div>
+    <div class="form-group">
+        <label for="quantidade">Quantidade:</label>
+        <input type="number" id="quantidade" value="1">
+    </div>
+    <button onclick="salvarProduto()">Salvar no Banco</button>
+
+    <!-- Tabela de exibição de dados em tempo real -->
+    <table id="tabelaEstoque">
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nome</th>
+                <th>Quantidade</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody id="corpoTabela">
+            <!-- Dados vindos do banco serão inseridos aqui -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // 1. CONFIGURAÇÃO DA CONEXÃO COM O BANCO DE DADOS
+    const SUPABASE_URL = "https://afuthdhbsgnpbbvlqchc.supabase.co/rest/v1/"; // Cole aqui a URL do seu projeto
+    const SUPABASE_KEY = "sb_publishable_w1rfCLikXbKeI8o9tFMTvQ_kBkFLByu"; // Cole aqui a sua chave anon public
+    
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // 2. FUNÇÃO PARA CARREGAR OS DADOS DO BANCO NA TELA
+    async function carregarEstoque() {
+        const { data, error } = await supabase
+            .from('estoque')
+            .select('*')
+            .order('nome', { ascending: true });
+
+        if (error) {
+            console.error('Erro ao buscar dados:', error);
+            return;
+        }
+
+        const corpoTabela = document.getElementById('corpoTabela');
+        corpoTabela.innerHTML = '';
+
+        data.forEach(item => {
+            const linha = `
+                <tr>
+                    <td>${item.codigo}</td>
+                    <td>${item.nome}</td>
+                    <td>${item.quantidade}</td>
+                    <td>
+                        <button style="background-color: #dc3545;" onclick="deletarProduto('${item.id}')">Excluir</button>
+                    </td>
+                </tr>
+            `;
+            corpoTabela.innerHTML += linha;
+        });
+    }
+
+    // 3. FUNÇÃO PARA ADICIONAR OU ATUALIZAR ITEM
+    async function salvarProduto() {
+        const codigo = document.getElementById('codigo').value;
+        const nome = document.getElementById('nome').value;
+        const quantidade = parseInt(document.getElementById('quantidade').value);
+
+        if (!codigo || !nome) {
+            alert('Por favor, preencha o código e o nome do produto.');
+            return;
+        }
+
+        // Verifica se o produto já existe no banco de dados pelo código de barras
+        const { data: existente } = await supabase
+            .from('estoque')
+            .select('*')
+            .eq('codigo', codigo)
+            .single();
+
+        if (existente) {
+            // Se já existe, atualiza a quantidade somando a nova quantidade
+            const novaQtd = existente.quantidade + quantidade;
+            await supabase
+                .from('estoque')
+                .update({ quantidade: novaQtd, nome: nome })
+                .eq('id', existente.id);
+        } else {
+            // Se não existe, insere um novo produto
+            await supabase
+                .from('estoque')
+                .insert([{ codigo, nome, quantidade }]);
+        }
+
+        // Limpa os campos do formulário
+        document.getElementById('codigo').value = '';
+        document.getElementById('nome').value = '';
+        document.getElementById('quantidade').value = '1';
+
+        // Atualiza a tabela na tela
+        carregarEstoque();
+    }
+
+    // 4. FUNÇÃO PARA EXCLUIR UM ITEM DO BANCO
+    async function deletarProduto(id) {
+        if (confirm("Tem certeza que deseja excluir este item?")) {
+            await supabase
+                .from('estoque')
+                .delete()
+                .eq('id', id);
+            
+            carregarEstoque();
+        }
+    }
+
+    // Carrega os dados assim que a página é aberta
+    window.onload = carregarEstoque;
+</script>
+
+</body>
+</html>
